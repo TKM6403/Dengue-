@@ -1,0 +1,105 @@
+model {
+
+    
+
+  ####### INFECTIONS ########
+  ## Calculate the IVar
+ 
+    
+    Istep[1] = ((theta[1]*(I_0/N[1])*Sp0[1])-(gamma*I_0)) #Istep[t] is moving bewteen I[t-1] and I[t]
+    Istepvar[1]= ((theta[1]*(I_0/N[1])*Sp0[1])-(gamma*I_0))*tauI
+
+    Sstep[1] = (B[1]-(theta[1]*(I_0/N[1])*Sp0[1]))
+    Sstepvar[1]=(B[1]-(theta[1]*(I_0/N[1])*Sp0[1]))*tauS
+    
+    R_0 <- N[1]-Sp0-I_0
+    Rstep[1]= (gamma*I_0)
+    Rstepvar[1]=((gamma*I_0))*tauR
+ 
+ 
+  ## Calculate infections at time t=1
+ 
+    #I[1] <- 100000
+   ####### SUSCEPTIBLES ########
+  ## Calculate the SVar
+  
+ 
+  ## Calculate susceptibles at time t=1
+  Sp[1] = Sp0[1]+Sstep[1]
+  I[1]=I_0+Istep[1]
+  R[1]=R_0+Rstep[1]
+
+ 
+    CVar[1] <- (rho1*I[1])*tauO
+    C[1] ~dnorm(rho1*I[1], 1/(CVar[1])^2)
+
+
+   
+
+ 
+ 
+  #for(j in 1:J){
+   # prob[j] <- abs(C[j])/(C[1])
+ # }
+ # K[1,1:J] ~ dmulti(prob[1,],100)
+
+
+ for (t in 2:T){
+     
+     #Istep[t] is moving bewteen I[t-1] and I[t]
+    Istepvar[t]= ((theta[t]*(I[t-1]/N[t-1])*Sp[t-1])-(gamma*I[t-1]))*tauI
+    #Istep[t] ~ dnorm(((theta[t]*(I[t-1]/N[t-1])*Sp[t-1])-(gamma*I[t-1])), 1/(Istepvar[t])^2)
+    Istep[t] ~ dnorm(((theta[t]*(I[t-1]/N[t-1])*Sp[t-1])-(gamma*I[t-1])), 1/25)
+
+    Sstepvar[t] =  (B[t]-(theta[t]*(I[t-1]/N[t-1])*Sp[t-1]))*tauS
+    Sstep[t] ~  dnorm((B[t]-(theta[t]*(I[t-1]/N[t-1])*Sp[t-1])),1/(Sstepvar[t])^2 )
+
+    Rstepvar[t]=((gamma*I[t-1]))*tauR
+    Rstep[t] ~dnorm(((gamma*I[t-1])),1/(Rstepvar[t])^2 )
+
+ }
+
+  ## step through observations
+    #thetavar[1] <- (alpha+1+ alpha * sin((2*3.14*1/52)-phi ))*tautheta
+ for (t in 2:T){
+  Sp[t] = Sp[t-1]+Sstep[t]
+  I[t]=I[t-1]+Istep[t]
+  R[t]=R[t-1]+Rstep[t]
+
+ 
+    #CVar[t] <- (rho1*I[t])*tauO
+    C[t] ~dnorm(rho1*I[t], 1/25)
+
+ }
+
+  ####### INFECTIONS ########
+  
+ 
+  ## Calculate infections at time t=1
+ 
+
+
+  ####### SUSCEPTIBLES ######
+
+
+ 
+
+
+## priors
+  tauS ~ dunif(0, 1)
+  tauO  ~ dunif(0, 0.1)
+  tauI~ dunif(0, 1)
+  tauR ~ dunif(0,1)
+  Sp0[1] ~dunif(0.5*4167000, 0.8*4167000)
+  I_0 ~ dunif(400,600)
+  gamma ~ dunif(0.99, 1)
+  #remove ~ dunif(0, 1)
+ #theta[1] ~ dunif(1, 10)
+  #rho1 ~ dunif(0, 1)
+  #alpha ~ dunif(0, 5)
+  #period ~ dnorm(26, 1/25)
+  #phi ~ dunif(0, 52)
+  #tautheta~ dunif(0, 0.1)
+  #shift ~ dunif(0,52)
+ 
+}
